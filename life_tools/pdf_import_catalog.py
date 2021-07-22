@@ -69,7 +69,7 @@ def addBookmark(pdf_path, bookmark_txt_path, page_offset=0):
     #   ...
     i = 0
     for line in bookmark_lines:
-        line2 = re.split(r'\s+', line.strip())
+        line2 = re.split(r'\s+', line.strip())  # 先strip()，否则最后的列表中前后可能带有空字符串''
         if len(line2) == 1:  # 表示空行，因为上面用了line.strip()
             continue
 
@@ -78,17 +78,19 @@ def addBookmark(pdf_path, bookmark_txt_path, page_offset=0):
         history_indent.append(indent_size)
 
         # 删除title中的......结构
-        name_chars = line2[:-1]
+        name_chars = line2[:-2]
         while name_chars[-1][-1] == '.':
             del name_chars[-1]
 
         # title, page = ' '.join(line2[:-1]), int(line2[-1]) - 1
-        title, page = ' '.join(name_chars), int(line2[-1]) - 1
+        title, page, top = ' '.join(name_chars), int(line2[-2]) - 1, float(line2[-1])
         if page + page_offset >= maxPages:
             return "Error: page index out of range: %d >= %d" % (page + page_offset, maxPages)
 
         # print(title, page, parent)
-        new_bookmark = writer.addBookmark(title, page + page_offset, parent=parent)
+        # MAC上的预览似乎不识别颜色和/FitH模式，只识别/XYZ
+        # 另外这里的纵坐标和一般web页面的坐标不同，它类似于平面直角坐标系，原点在页面左下角，且向上是正，所以这里用800-top
+        new_bookmark = writer.addBookmark(title, page + page_offset, parent, (0.0, 0.6, 1.0), False, False, '/XYZ', 0, 720 - top, 0)
         # new_bookmark = writer.addBookmark(title, page + page_offset, parent=parent)
         bookmarks.append(new_bookmark)
 
