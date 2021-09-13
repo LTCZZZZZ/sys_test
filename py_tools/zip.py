@@ -45,9 +45,9 @@ def zip_file(name, zipfilename, pwd=None):
 
 if __name__ == '__main__':
     print(time.time())
-    root = '/Users/ltc/Downloads/测试/测试'
-    dirname = os.path.join(root, '测试')
-    zipfilename = os.path.join(root, '测试1.zip')
+    root = '/Users/ltc/Downloads'
+    dirname = os.path.join(root, 'EasyVArea')
+    zipfilename = os.path.join(root, 'EasyVArea.zip')
     # zip_dir(dirname, zipfilename)
-    zip_file(dirname, zipfilename, pwd='123')
+    zip_file(dirname, zipfilename, pwd=None)
     print(time.time())
