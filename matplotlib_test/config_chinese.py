@@ -21,9 +21,12 @@ for i in a:
 # f.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05, hspace=0.2, wspace=0.2)
 # f.show()
 
-# 全局设置字体的方法
+# 全局设置字体的方法，设置有中文的字体以正常显示中文
 print(plt.rcParams['font.family'])
-plt.rcParams['font.family'] = ['STXingkai']
+plt.rcParams['font.family'] = ['STXingkai']  # 此字体显示负号不正常，需搭配下面的设置
+plt.rcParams['axes.unicode_minus'] = False  # 正常显示负号
+
+# plt.rcParams['font.family']=['STKaiti']  # 此字体能自动显示负号
 print(plt.rcParams['font.family'])
 f = plt.figure()
 f.suptitle('总标题abcdef', fontsize=48, color='#0099FF')

@@ -124,6 +124,7 @@ plt.setp(line1, color='black', linewidth=8, linestyle='-', alpha=0.3)
 print(plt.setp(line1))  # 会显示到底有哪些属性可以设置
 
 # （3）下面是常见的属性设置：
+# 参见官方文档 https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html?#matplotlib.pyplot.plot
 '''常见的颜色：——除了使用字母，还可以使用十六进制的字符串表示，比如“#008000”，这样任意一种颜色均可以使用了。
         ``'b'``          blue
         ``'g'``          green
