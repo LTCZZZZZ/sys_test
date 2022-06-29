@@ -36,7 +36,7 @@ def generate_point(poly, bounds):
             return [x, y]
 
 
-def generate_location(edu_id, poly, bounds, n=10):
+def generate_location(edu_id, adcode, poly, bounds, n=20):
     """
     根据edu_id，area在rpc的数据库中edu_location表中生成n个随机点数据，满足点在poly中
     """
@@ -46,7 +46,7 @@ def generate_location(edu_id, poly, bounds, n=10):
         loc = []
         for i in range(n):
             loc.append(generate_point(poly, bounds))
-        cur_rpc.execute(f"insert into edu_location values({edu_id}, '{json.dumps(loc)}')")
+        cur_rpc.execute(f"insert into edu_location values({edu_id}, '{json.dumps(loc)}', '{adcode}')")
         conn_rpc.commit()
 
 
@@ -99,7 +99,7 @@ def set_location(edu_id, adcode, ratio):
     # print(poly.bounds)
     # print(poly.minimum_rotated_rectangle)
     bounds = zoom(poly.bounds, ratio)
-    generate_location(edu_id, poly, bounds)
+    generate_location(edu_id, adcode, poly, bounds)
     update_location(edu_id, poly, bounds)
 
     # return这一行是留着给jupyter显示地图用的
@@ -108,22 +108,29 @@ def set_location(edu_id, adcode, ratio):
 
 def process():
     """主执行进程"""
-    set_location(32, 110101, 0.9)  # 北京市崇文区
-    set_location(74, 340203, 0.9)  # 芜湖市弋江区
-    set_location(126, 610922, 0.9)  # 安康市石泉县
-    set_location(108, 420982, 0.9)  # 孝感市安陆市
-    set_location(147, 420303, 0.9)  # 十堰市张湾区
-    set_location(148, 420302, 0.9)  # 十堰市茅箭区(这个区畸形，有点难设置)
-    set_location(152, 510112, 0.9)  # 成都市龙泉驿区
-    set_location(140, 341002, 0.9)  # 黄山市屯溪区
-    set_location(168, 530927, 0.9)  # 临沧市沧源县
-    set_location(188, 431228, 0.9)  # 怀化市芷江县
-    set_location(185, 130126, 0.9)  # 石家庄灵寿县
-    set_location(212, 650102, 0.9)  # 乌鲁木齐天山区
-    set_location(177, 410105, 0.9)  # 郑州市金水区
-    set_location(169, 341024, 0.9)  # 黄山市祁门县
-    set_location(217, 321311, 0.9)  # 宿迁市宿豫区
-    set_location(101, 340304, 0.9)  # 蚌埠市高新区（禹会区）
+    # set_location(32, 110101, 0.9)  # 北京市崇文区
+    # set_location(74, 340203, 1.2)  # 芜湖市弋江区
+    # set_location(126, 610922, 0.9)  # 安康市石泉县
+    # set_location(108, 420982, 0.9)  # 孝感市安陆市
+    # set_location(147, 420303, 0.9)  # 十堰市张湾区
+    # set_location(148, 420302, 0.9)  # 十堰市茅箭区(这个区畸形，有点难设置)
+    # set_location(152, 510112, 0.9)  # 成都市龙泉驿区
+    # set_location(140, 341002, 0.9)  # 黄山市屯溪区
+    # set_location(168, 530927, 0.9)  # 临沧市沧源县
+    # set_location(188, 431228, 0.9)  # 怀化市芷江县
+    # set_location(185, 130126, 0.9)  # 石家庄灵寿县
+    # set_location(212, 650102, 0.9)  # 乌鲁木齐天山区
+    # set_location(177, 410105, 0.9)  # 郑州市金水区
+    # set_location(169, 341024, 0.9)  # 黄山市祁门县
+    # set_location(217, 321311, 0.9)  # 宿迁市宿豫区
+    # set_location(101, 340304, 0.9)  # 蚌埠市高新区（禹会区）
+    # set_location(290, 110101, 0.9)  # 鸿合三点伴区级教育局端演示平台（东城区地图）
+    # set_location(218, 130635, 0.9)  # 河北省保定市蠡县
+    # set_location(283, 370902, 0.9)  # 山东省泰安市泰山区
+    # set_location(116, 532527, 0.9)  # 云南省红河州泸西县
+    # set_location(306, 360702, 0.9)  # 江西省赣州市章贡区
+    set_location(297, 522723, 0.9)  # 贵州省黔南州贵定县
+    set_location(286, 520624, 0.9)  # 贵州省铜仁市思南县
 
 
 def main(env):
@@ -153,5 +160,5 @@ if __name__ == '__main__':
     # 平常注释掉，避免误执行
     # main('build')
     # main('preview')
-    # main('production')
+    main('production')
     pass
