@@ -81,8 +81,14 @@ def set_location(edu_id, adcode, ratio):
     # 地图文件不存在，先下载地图，移动并重命名，压缩成zip文件
     if not os.path.exists(f'{adcode}.json'):
         city_code = adcode // 100 * 100
+        # print(f'https://map.easyv.cloud/api/download_by_folder?list={adcode}%3A{city_code}&province=1&city=1&area=1')
         res = requests.get(
-            f'https://map.easyv.cloud/download_by_folder?list={adcode}%3A{city_code}&province=1&city=1&area=1')
+            f'https://map.easyv.cloud/api/download_by_folder?list={adcode}%3A{city_code}&province=1&city=1&area=1')
+        # print(res.text)
+        res = requests.get(
+            f'https://map.easyv.cloud/api/download_by_url?url={res.text}'
+        )
+        # print(res)
         # 用BytesIO缓存数据，然后直接解压
         with zipfile.ZipFile(io.BytesIO(res.content)) as zf:
             zf.extractall()
@@ -129,8 +135,9 @@ def process():
     # set_location(283, 370902, 0.9)  # 山东省泰安市泰山区
     # set_location(116, 532527, 0.9)  # 云南省红河州泸西县
     # set_location(306, 360702, 0.9)  # 江西省赣州市章贡区
-    set_location(297, 522723, 0.9)  # 贵州省黔南州贵定县
-    set_location(286, 520624, 0.9)  # 贵州省铜仁市思南县
+    # set_location(297, 522723, 0.9)  # 贵州省黔南州贵定县
+    # set_location(286, 520624, 0.9)  # 贵州省铜仁市思南县
+    set_location(330, 220623, 0.9)  # 吉林省白山市长白县
 
 
 def main(env):
@@ -159,6 +166,6 @@ def main(env):
 if __name__ == '__main__':
     # 平常注释掉，避免误执行
     # main('build')
-    # main('preview')
-    main('production')
+    main('preview')
+    # main('production')
     pass
