@@ -1,4 +1,19 @@
-# CSDN下载的html文件打开时会自动跳转，去掉这个功能，并去掉其他一些无关的组件
+# CSDN下载的html文件打开时会自动跳转，去掉这个功能，并允许选中、复制
+# 跳转节点
+# <div style="display:none;">
+# 	<img src="" onerror='setTimeout(function(){if(!/(csdn.net|iteye.com|baiducontent.com|googleusercontent.com|360webcache.com|sogoucdn.com|bingj.com|baidu.com)$/.test(window.location.hostname)){window.location.href="\x68\x74\x74\x70\x73\x3a\x2f\x2f\x77\x77\x77\x2e\x63\x73\x64\x6e\x2e\x6e\x65\x74"}},3000);'>
+# </div>
+# 禁止选中节点
+# <style>
+#     #content_views{
+#         -webkit-touch-callout: none;
+#         -webkit-user-select: none;
+#         -khtml-user-select: none;
+#         -moz-user-select: none;
+#         -ms-user-select: none;
+#         user-select: none;
+#     }
+# </style>
 import os.path
 from lxml import etree
 
@@ -18,6 +33,10 @@ def single_file(path):
     href_div = root.find('.//div[@style="display:none;"]')
     print(href_div)
     # print(href_div.getparent().getparent().getparent())
+
+    style = root.find('head/style')
+    # print(style.text)
+    style.text = style.text.replace('none', 'true')
 
     delete(root, './/div[@style="display:none;"]')
 
