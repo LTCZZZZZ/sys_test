@@ -37,7 +37,7 @@ f.show()
 # plt.rcParams['font.size'] = 12  # 字体大小
 # plt.rcParams['axes.unicode_minus'] = False  # 正常显示负号
 
-# 下面这一堆是github copilot生成的，未经过验证
+# 下面这一堆是Github Copilot生成的，未经过验证
 # plt.rcParams['axes.facecolor'] = '#E6E6FA'  # 设置背景颜色
 # plt.rcParams['axes.edgecolor'] = '#000000'  # 设置边框颜色
 # plt.rcParams['axes.linewidth'] = 1.5  # 设置边框宽度
