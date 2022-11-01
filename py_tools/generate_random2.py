@@ -7,7 +7,7 @@ import zipfile
 import json
 import shapely.geometry as geo
 import random
-from connection import connection, get_server
+from connection import connection, get_server, get_server2
 
 base_dir = '/Users/ltc/Downloads/EasyVArea/'
 os.chdir(base_dir)
@@ -54,10 +54,12 @@ def update_location(edu_id, poly, bounds):
     """
     根据edu_id，area在api的数据库中institution表中更新经纬度数据，使其在poly中
     """
-    # cur_api.execute('select p.id from institution p left join education_institution q on p.id = q.institution_id '
-    #                'where q.education_id = %s and p.type = 2', (edu_id,))
+    # 全部更新
     cur_api.execute('select p.id from institution p left join education_institution q on p.id = q.institution_id '
-                    'where q.education_id = %s and p.type = 2 and p.longitude = 0', (edu_id,))
+                   'where q.education_id = %s and p.type = 2', (edu_id,))
+    # 只更新没有经纬度的
+    # cur_api.execute('select p.id from institution p left join education_institution q on p.id = q.institution_id '
+    #                 'where q.education_id = %s and p.type = 2 and p.longitude = 0', (edu_id,))
     id_list = [i[0] for i in cur_api.fetchall()]
     print(id_list)
 
@@ -137,7 +139,8 @@ def process():
     # set_location(306, 360702, 0.9)  # 江西省赣州市章贡区
     # set_location(297, 522723, 0.9)  # 贵州省黔南州贵定县
     # set_location(286, 520624, 0.9)  # 贵州省铜仁市思南县
-    set_location(330, 220623, 0.9)  # 吉林省白山市长白县
+    # set_location(330, 220623, 0.9)  # 吉林省白山市长白县
+    set_location(324, 320602, 0.9)  # 江苏省南通市崇川区
 
 
 def main(env):
@@ -148,24 +151,29 @@ def main(env):
         conn_rpc, cur_rpc = connection('rpc-analysis-build')
         process()
     elif env == 'preview':
-        conn_api, cur_api = connection('api-330-preview', DictCursor=False)
-        with get_server('ubuntu', 'rpc-analysis-preview') as server:
-            # print(server.local_bind_port)
-            conn_rpc, cur_rpc = connection('rpc-analysis-preview', ssh=True)
+        server1, server2 = get_server2('ubuntu', 'rpc-analysis-preview', 'api-330-preview')
+        # 注意，如果要加as结构，是在with后的每个变量加，示例：
+        # with server1 as s1, server2 as s2:
+        with server1, server2:
+            # print(server1.local_bind_port)
+            conn_rpc, cur_rpc = connection('rpc-analysis-preview', ssh=True, port=server1.local_bind_port)
+            conn_api, cur_api = connection('api-330-preview', DictCursor=False, ssh=True, port=server2.local_bind_port)
             process()
             conn_rpc.close()
+            conn_api.close()
     elif env == 'production':
-        conn_api, cur_api = connection('api-330-preview', DictCursor=False)
-        with get_server('ubuntu', 'rpc-analysis-production') as server:
-            # print(server.local_bind_port)
-            conn_rpc, cur_rpc = connection('rpc-analysis-production', ssh=True)
+        server1, server2 = get_server2('ubuntu', 'rpc-analysis-production', 'api-330-preview')
+        with server1, server2:
+            conn_rpc, cur_rpc = connection('rpc-analysis-production', ssh=True, port=server1.local_bind_port)
+            conn_api, cur_api = connection('api-330-preview', DictCursor=False, ssh=True, port=server2.local_bind_port)
             process()
             conn_rpc.close()
+            conn_api.close()
 
 
 if __name__ == '__main__':
     # 平常注释掉，避免误执行
     # main('build')
-    main('preview')
+    # main('preview')
     # main('production')
     pass

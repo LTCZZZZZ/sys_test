@@ -9,11 +9,11 @@ from mysql_conf import config_dict
 from sshtunnel import SSHTunnelForwarder
 
 
-def connection(section, DictCursor=True, ssh=False):
+def connection(section, DictCursor=True, ssh=False, port=0):
     d = config_dict(section)
     if ssh:
         d['HOST'] = '127.0.0.1'
-        d['PORT'] = 4000
+        d['PORT'] = port
     conn = MySQLdb.connect(host=d['HOST'], user=d['USER'], password=d[
         'PASSWORD'], port=int(d['PORT']), charset='utf8', db=d['NAME'])
     if DictCursor:
@@ -51,3 +51,28 @@ def get_server(sec1, sec2):
         remote_bind_address=(d2['HOST'], int(d2['PORT']))  # 目标机器B地址，端口
     )
     return server
+
+
+def get_server2(sec0, sec1, sec2):
+    # 本机-服务器0-同时链接-数据库服务器1
+    #                    -数据库服务器2
+    d0 = config_dict(sec0)
+    d1 = config_dict(sec1)
+    d2 = config_dict(sec2)
+    server1 = SSHTunnelForwarder(
+        ssh_address_or_host=d0['HOST'],  # 跳板机A地址
+        ssh_port=int(d0['PORT']),  # 跳板机A端口
+        ssh_username=d0['USER'],  # 跳板机A账号
+        ssh_pkey=d0['PKEY'],  # 跳板机A密码
+        local_bind_address=('127.0.0.1', 4001),  # 这里一般填127.0.0.1
+        remote_bind_address=(d1['HOST'], int(d1['PORT']))  # 目标机器B地址，端口
+    )
+    server2 = SSHTunnelForwarder(
+        ssh_address_or_host=d0['HOST'],  # 跳板机A地址
+        ssh_port=int(d0['PORT']),  # 跳板机A端口
+        ssh_username=d0['USER'],  # 跳板机A账号
+        ssh_pkey=d0['PKEY'],  # 跳板机A密码
+        local_bind_address=('127.0.0.1', 4002),  # 这里一般填127.0.0.1
+        remote_bind_address=(d2['HOST'], int(d2['PORT']))  # 目标机器B地址，端口
+    )
+    return server1, server2
