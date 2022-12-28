@@ -84,17 +84,24 @@ def set_location(edu_id, adcode, ratio):
     if not os.path.exists(f'{adcode}.json'):
         city_code = adcode // 100 * 100
         # print(f'https://map.easyv.cloud/api/download_by_folder?list={adcode}%3A{city_code}&province=1&city=1&area=1')
+        # res = requests.get(
+        #     f'https://map.easyv.cloud/api/download_by_folder?list={adcode}%3A{city_code}&province=1&city=1&area=1')
         res = requests.get(
-            f'https://map.easyv.cloud/api/download_by_folder?list={adcode}%3A{city_code}&province=1&city=1&area=1')
-        # print(res.text)
+            f'https://map.easyv.cloud/api/download_by_folder?list={adcode}&province=0&city=1&area=1')
+        print(res.text)
         res = requests.get(
             f'https://map.easyv.cloud/api/download_by_url?url={res.text}'
         )
         # print(res)
         # 用BytesIO缓存数据，然后直接解压
-        with zipfile.ZipFile(io.BytesIO(res.content)) as zf:
-            zf.extractall()
-        shutil.move(base_dir + f'muti_files/{city_code}.json', f'{adcode}.json')
+        # with zipfile.ZipFile(io.BytesIO(res.content)) as zf:
+        #     zf.extractall()
+        # shutil.move(base_dir + f'muti_files/{city_code}.json', f'{adcode}.json')
+
+        # 获取地图文件方式又有更改，现在直接是json文件
+        with open(f'{adcode}.json', 'wb') as f:
+            f.write(res.content)
+
         os.system(f'zip {adcode}.json.zip {adcode}.json')
 
     with open(f'{adcode}.json') as f:
@@ -140,7 +147,10 @@ def process():
     # set_location(297, 522723, 0.9)  # 贵州省黔南州贵定县
     # set_location(286, 520624, 0.9)  # 贵州省铜仁市思南县
     # set_location(330, 220623, 0.9)  # 吉林省白山市长白县
-    set_location(324, 320602, 0.9)  # 江苏省南通市崇川区
+    # set_location(324, 320602, 0.9)  # 江苏省南通市崇川区
+    # set_location(385, 320585, 0.9)  # 江苏省苏州市太仓市
+    set_location(393, 320582, 0.9)  # 江苏省苏州市张家港市
+    set_location(397, 321311, 0.9)  # 江苏省宿迁市宿豫区
 
 
 def main(env):
