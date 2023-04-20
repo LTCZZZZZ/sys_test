@@ -36,7 +36,7 @@ def generate_point(poly, bounds):
             return [x, y]
 
 
-def generate_location(edu_id, adcode, poly, bounds, n=20):
+def generate_location(edu_id, adcode, poly, bounds, n=30):
     """
     根据edu_id，area在rpc的数据库中edu_location表中生成n个随机点数据，满足点在poly中
     """
@@ -46,6 +46,7 @@ def generate_location(edu_id, adcode, poly, bounds, n=20):
         loc = []
         for i in range(n):
             loc.append(generate_point(poly, bounds))
+        print(f'loc: {loc}')
         cur_rpc.execute(f"insert into edu_location values({edu_id}, '{json.dumps(loc)}', '{adcode}')")
         conn_rpc.commit()
 
@@ -107,7 +108,7 @@ def set_location(edu_id, adcode, ratio):
     with open(f'{adcode}.json') as f:
         data = json.load(f)
     area = data["features"][0]["geometry"]["coordinates"][0][0]
-    print(area)
+    # print(f'area: {area}')
     poly = geo.Polygon(area)
     # print(poly.contains(geo.Point(113, 35)))
     # print(poly.contains(geo.Point(113.743742, 34.811443)))
@@ -144,8 +145,8 @@ def process():
     # set_location(283, 370902, 0.9)  # 山东省泰安市泰山区
     # set_location(116, 532527, 0.9)  # 云南省红河州泸西县
     # set_location(306, 360702, 0.9)  # 江西省赣州市章贡区
-    set_location(341, 360702, 0.9)  # 江西省赣州市章贡区（兴趣）
-    set_location(342, 360702, 0.9)  # 江西省赣州市章贡区（幼儿园）
+    # set_location(341, 360702, 0.9)  # 江西省赣州市章贡区（兴趣）
+    # set_location(342, 360702, 0.9)  # 江西省赣州市章贡区（幼儿园）
     # set_location(297, 522723, 0.9)  # 贵州省黔南州贵定县
     # set_location(286, 520624, 0.9)  # 贵州省铜仁市思南县
     # set_location(330, 220623, 0.9)  # 吉林省白山市长白县
@@ -153,6 +154,11 @@ def process():
     # set_location(385, 320585, 0.9)  # 江苏省苏州市太仓市
     # set_location(393, 320582, 0.9)  # 江苏省苏州市张家港市
     # set_location(397, 321311, 0.9)  # 江苏省宿迁市宿豫区
+    # set_location(86, 532528, 0.9)  # 云南省红河州元阳县
+    # set_location(403, 320382, 0.9)  # 徐州市邳州市
+    # set_location(404, 320303, 0.9)  # 徐州市云龙区
+    # set_location(405, 320311, 0.9)  # 徐州市泉山区
+    # set_location(194, 320371, 0.9)  # 徐州市经济开发区（无地图，暂未处理）
 
 
 def main(env):
