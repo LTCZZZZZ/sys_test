@@ -1,7 +1,7 @@
 # 测试git冲突
 import numpy as np
 
-print('版本1')
+print('build-01')
 
 
 def func1():
