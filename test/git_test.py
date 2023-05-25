@@ -4,7 +4,7 @@ import numpy as np
 print('master')
 
 
-def func2():
+def func22():
     for i in range(10):
         print(i)
-    print('func2')
+    print('2次修改')
