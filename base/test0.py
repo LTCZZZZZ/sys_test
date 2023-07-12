@@ -1,8 +1,12 @@
-# 别在自己的电脑上试这个
-# import time
-#
-# while True:
-#     print('test123')
-#     time.sleep(1)
+# 定义一个
 
-# 奇怪啊2
+a = 0
+
+
+def func():
+    global a
+    a += 1
+
+
+func()
+print(__name__, a)
