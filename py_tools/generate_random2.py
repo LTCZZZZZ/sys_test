@@ -159,6 +159,8 @@ def process():
     # set_location(404, 320303, 0.9)  # 徐州市云龙区
     # set_location(405, 320311, 0.9)  # 徐州市泉山区
     # set_location(194, 320371, 0.9)  # 徐州市经济开发区（无地图，暂未处理）
+    set_location(425, 360423, 0.9)  # 江西省九江市武宁县
+    # set_location(372, 370702, 0.9)  # 山东省潍坊市潍城区
 
 
 def main(env):

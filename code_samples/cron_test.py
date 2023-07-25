@@ -74,6 +74,12 @@ def func2(logger):
     print('func2', time.strftime('%Y-%m-%d %H:%M:%S'))
 
 
+def func3():
+    print('func3', time.strftime('%Y-%m-%d %H:%M:%S'))
+    time.sleep(3)
+    raise Exception('func3 error')
+
+
 # 注意，这个一般来说得放在函数外面，否则因为同名问题，函数会创建多个对象且无法销毁，执行n次循环会打印n的累加次日志
 # 目前暂未搞清楚具体的原因机制
 logger1 = get_logger('func1', 'cron_func1.log')
@@ -85,9 +91,12 @@ logger2 = get_logger('func2', 'cron_func2.log')
 
 scheduler = BlockingScheduler()
 # 如果设定start_date可以达到让程序从整点开始运行的目的
-scheduler.add_job(func1, 'interval', seconds=5, start_date='2020-10-26', args=[logger1, ])
+scheduler.add_job(func1, 'interval', seconds=5, start_date='2023-07-25', args=[logger1, ])
 scheduler.add_job(func2, 'interval', seconds=3, args=[logger2, ])
-scheduler.add_job(func2, 'cron', hour=0, args=[logger2, ])
+# scheduler.add_job(func2, 'cron', hour=0, args=[logger2, ])
+
+# 其中一个job任务出错，不影响其他任务的执行，且在下次该执行的时间点仍会正常执行
+scheduler.add_job(func3, 'cron', second=5, args=[])
 # scheduler.add_job(func1, 'cron', second=0)
 scheduler.start()
 
