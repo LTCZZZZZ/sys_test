@@ -8,6 +8,7 @@ import time
 # 思路2：遍历加入所有单张牌，判断是否胡牌
 
 from copy import deepcopy
+from itertools import combinations, permutations
 
 
 def get_match(i):
@@ -162,7 +163,7 @@ def is_complete(cards):
         complete += no_pair(cards)
 
     # 打印递归次数
-    print(f'{cards}: {recursion}')
+    # print(f'{cards}: {recursion}')
     return complete
 
 
@@ -193,6 +194,51 @@ def fishing(cards):
     return listen, f'{time_cost:.3f} s'
 
 
+def get_cards(num):
+    """
+    num张牌所有可能的组合
+    :param num:
+    :return:
+    """
+    s = '123456789' * 4
+    res = []
+    for i in combinations(s, num):
+        # 注意这里i要先排序，否则13和31会被认为是不同的组合
+        res.append(''.join(sorted(i)))
+    print(len(res))
+    res = sorted(set(res))
+    print(len(res))
+    return res
+
+
+def from_listen_to_cards(listen, num=7, cards_list=None):
+    """
+    计算听指定牌的所有可能牌型，牌张数为num，这个结果print就行
+    此函数同时返回num张牌可听的最多张数及对应的牌型
+    :param listen:
+    :param num:
+    :param cards_list: 如果有cards_list，则不使用num，优先使用cards_list
+    :return: 返回num张牌可听的最多张数
+    """
+    listen = [int(i) for i in listen]
+    if not cards_list:
+        cards_list = get_cards(num)
+
+    max_listen = 0
+    specified_cards = None
+    specified_listen = None
+    for cards in cards_list:
+        listen_, _ = fishing(cards)
+        if len(listen_) > max_listen:
+            max_listen = len(listen_)
+            specified_cards = cards
+            specified_listen = listen_
+        if listen_ == listen:
+            print(cards, listen)
+
+    return max_listen, specified_cards, specified_listen
+
+
 if __name__ == '__main__':
     # cards = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     # print(cards_pop(cards, [1, 2, 3]))
@@ -210,3 +256,20 @@ if __name__ == '__main__':
 
     for v in ['3', '34', '3334', '3334567', '3456667', '1113455678999', '1112345678999']:
         print(v, fishing(v))
+
+    # 在单一数牌中任选2张牌，有多少种组合方式？
+    # 9*8/2 + 9 = 45种
+    # print(get_cards(2))
+
+    # 但是如果任选7张，问题就复杂了，因为每种数牌最多只有4张，所以任意单张不能超过4
+    # cards_list = get_cards(6)  # 1947792 2992
+    # cards_list = get_cards(7)  # 8347680 6030，这是暴力算出来的，6030种组合
+
+    # 现在可以考虑听2478的问题了
+    # 先考虑7张牌的情况
+    cards_list = get_cards(7)
+    from_listen_to_cards('2578', cards_list=cards_list)  # 3456667
+    from_listen_to_cards('24578', cards_list=cards_list)  # 3334567
+    res = from_listen_to_cards('2478', cards_list=cards_list)  # 7张组合中，只听2478的牌型不存在
+    print(res)
+
