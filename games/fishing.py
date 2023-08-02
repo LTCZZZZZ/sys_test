@@ -85,7 +85,7 @@ def is_complete(cards):
         """
         nonlocal recursion
         recursion += 1
-        print(cards)
+        # print(cards)
 
         complete = 0
         if len(cards) == 0:
@@ -93,20 +93,35 @@ def is_complete(cards):
         if len(cards) not in no_pair_num:
             return complete
 
-        # 这里使用set(cards)，因为如果整体匹配到了，直接返回成功，而匹配失败的话，也不需要用同样的数字再来一次
-        for c in sorted(set(cards)):
-            for c_match in get_match(c):
-                # c_match是一种含c的面子，如[1, 2, 3]
-                # print(cards, c, c_match)
-                signal, sub_cards = cards_pop(cards, c_match)
-                # print(signal, sub_cards)
-                if signal:
-                    complete += no_pair(sub_cards)
-                    # print(f'complete: {complete}')
+        # # 这里使用set(cards)，因为如果整体匹配到了，直接返回成功，而匹配失败的话，也不需要用同样的数字再来一次
+        # for c in sorted(set(cards)):
+        #     for c_match in get_match(c):
+        #         # c_match是一种含c的面子，如[1, 2, 3]
+        #         # print(cards, c, c_match)
+        #         signal, sub_cards = cards_pop(cards, c_match)
+        #         # print(signal, sub_cards)
+        #         if signal:
+        #             complete += no_pair(sub_cards)
+        #             # print(f'complete: {complete}')
+        #
+        #         # 如果要追求速度，加上以下代码，即只要匹配到就返回，不再继续匹配
+        #         if complete:
+        #             return complete  # 此时no_pair返回的complete最多为1，因为只要匹配到就返回了
 
-                # 如果要追求速度，加上以下代码，即只要匹配到就返回，不再继续匹配
-                if complete:
-                    return complete  # 此时no_pair返回的complete最多为1，因为只要匹配到就返回了
+        # 思考后发现这个外层for循环完全没有必要，因为get_match函数已经包含了匹配成功时所有可能的情况
+        # 直接去掉外层for循环后代码如下：将cards[0]作为参数传入get_match函数
+        for c_match in get_match(cards[0]):
+            # c_match是一种含c的面子，如[1, 2, 3]
+            # print(cards, cards[0], c_match)
+            signal, sub_cards = cards_pop(cards, c_match)
+            # print(signal, sub_cards)
+            if signal:
+                complete += no_pair(sub_cards)
+                # print(f'complete: {complete}')
+
+            # 如果要追求速度，加上以下代码，即只要匹配到就返回，不再继续匹配
+            if complete:
+                return complete  # 此时no_pair返回的complete最多为1，因为只要匹配到就返回了
 
         # print(cards, complete)
         return complete
@@ -140,7 +155,7 @@ def is_complete(cards):
 
             # 如果要追求速度，加上以下代码，即只要匹配到就返回，不再继续匹配
             # 九莲宝灯速度从1.3s左右下降到0.4s左右，但感觉还是不够快，这个算法似乎已经很难优化了
-            # 想要进一步加速，可以考虑更换算法或使用静态语言，之后用Go试试
+            # 错，再次找问题并细致优化过后，九莲宝灯速度从0.4s左右下降到0.001s，性能巨幅提升，达到实际可用的程度了
             if complete:
                 break
     else:
@@ -186,12 +201,12 @@ if __name__ == '__main__':
     # print(is_complete([1, 2, 3]))
     # print(is_complete([1, 2, 3, 4, 5, 6, 7, 8, 9]))  # 优化前：162  # 后，递归次数4
 
-    print(is_complete('124567'))
-    # print(is_complete('112345678999'))
-    # print(is_complete('11123345678999'))  # 递归次数5
+    # print(is_complete('124567'))
+    print(is_complete('11112345678999'))  # 递归次数7
+    print(is_complete('11123345678999'))  # 递归次数5
 
     # for v in ['33', '234', '33344', '33345', '33345567']:
     #     print(v, is_complete(v))
 
-    # for v in ['3', '34', '3334', '3334567', '3456667', '1113455678999', '1112345678999']:
-    #     print(v, fishing(v))
+    for v in ['3', '34', '3334', '3334567', '3456667', '1113455678999', '1112345678999']:
+        print(v, fishing(v))
