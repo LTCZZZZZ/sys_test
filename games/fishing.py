@@ -169,7 +169,7 @@ def is_complete(cards):
 
 def fishing(cards):
     """
-    只考虑单种数牌、一般型，计算听牌面数，能向上加1张组成一种型即可，称为成型
+    只考虑单种数牌、一般型(即清一色不含七对)，计算听牌面数，能向上加1张组成一种型即可，称为成型
     默认cards是已排序过的
     如3-3，34-25，3334-245，3334567-24578，3456667-2578
     :param cards:
@@ -213,7 +213,7 @@ def get_cards(num):
 
 def from_listen_to_cards(listen, num=7, cards_list=None):
     """
-    计算听指定牌的所有可能牌型，牌张数为num，这个结果print就行
+    清一色不含七对，计算听指定牌的所有可能牌型，牌张数为num，这个结果print就行
     此函数同时返回num张牌可听的最多张数及对应的牌型
     :param listen:
     :param num:
@@ -225,18 +225,18 @@ def from_listen_to_cards(listen, num=7, cards_list=None):
         cards_list = get_cards(num)
 
     max_listen = 0
-    specified_cards = None
-    specified_listen = None
+    specified_listen = []
     for cards in cards_list:
         listen_, _ = fishing(cards)
         if len(listen_) > max_listen:
             max_listen = len(listen_)
-            specified_cards = cards
-            specified_listen = listen_
+            specified_listen = [(cards, listen_)]
+        elif len(listen_) == max_listen:
+            specified_listen.append((cards, listen_))
         if listen_ == listen:
             print(cards, listen)
 
-    return max_listen, specified_cards, specified_listen
+    return max_listen, specified_listen
 
 
 if __name__ == '__main__':
@@ -271,5 +271,8 @@ if __name__ == '__main__':
     from_listen_to_cards('2578', cards_list=cards_list)  # 3456667
     from_listen_to_cards('24578', cards_list=cards_list)  # 3334567
     res = from_listen_to_cards('2478', cards_list=cards_list)  # 7张组合中，只听2478的牌型不存在
-    print(res)
+    # 7张组合和5面的总共只有11种，如下
+    print(res)  # 2223444, 2223456, 2345666, 3334555, 3334567, 3456777, 4445666, 4445678, 4567888, 5556777, 6667888
+
+
 
