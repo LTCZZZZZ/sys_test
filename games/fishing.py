@@ -10,6 +10,8 @@ import time
 from copy import deepcopy
 from itertools import combinations, permutations
 
+from scipy.special import comb, perm
+
 
 def get_match(i):
     """
@@ -197,9 +199,13 @@ def fishing(cards):
 def get_cards(num):
     """
     num张牌所有可能的组合
+    num = 9 需要42s左右
+    num = 10 组合数为254186856，去重后为32211，需要144s左右
+    再往上这个函数估计就很难顶了，内存占用等都会大幅增加
     :param num:
     :return:
     """
+    time0 = time.time()
     s = '123456789' * 4
     res = []
     for i in combinations(s, num):
@@ -208,10 +214,36 @@ def get_cards(num):
     print(len(res))
     res = sorted(set(res))
     print(len(res))
+    print(f'time_consume: {time.time() - time0:.3f} s')
     return res
 
 
-def from_listen_to_cards(listen, num=7, cards_list=None):
+def get_cards2(num):
+    """
+    num张牌所有可能的组合，优化版，自己重写一个方法
+    基本思路：n+1就是在所有n的基础上，再进一张牌(只须满足不超过4张)，然后去重
+    num = 10仅需0.3s左右
+    num = 13仅需1.5s左右
+    :param num:
+    :return:
+    """
+    time0 = time.time()
+    if num == 1:
+        res = [str(i) for i in range(1, 10)]
+    else:
+        cards = get_cards2(num - 1)
+        res = []
+        for i in cards:
+            for j in range(1, 10):
+                if i.count(str(j)) < 4:
+                    res.append(''.join(sorted(i + str(j))))
+        res = sorted(set(res))
+    print(len(res))
+    # print(f'time_consume: {time.time() - time0:.3f} s')
+    return res
+
+
+def from_listen_to_cards(listen_list, num=7, cards_list=None):
     """
     清一色不含七对，计算听指定牌的所有可能牌型，牌张数为num，这个结果print就行
     此函数同时返回num张牌可听的最多张数及对应的牌型
@@ -220,7 +252,7 @@ def from_listen_to_cards(listen, num=7, cards_list=None):
     :param cards_list: 如果有cards_list，则不使用num，优先使用cards_list
     :return: 返回num张牌可听的最多张数
     """
-    listen = [int(i) for i in listen]
+    listen_list = [[int(i) for i in listen] for listen in listen_list]
     if not cards_list:
         cards_list = get_cards(num)
 
@@ -233,8 +265,8 @@ def from_listen_to_cards(listen, num=7, cards_list=None):
             specified_listen = [(cards, listen_)]
         elif len(listen_) == max_listen:
             specified_listen.append((cards, listen_))
-        if listen_ == listen:
-            print(cards, listen)
+        if listen_ in listen_list:
+            print(cards, listen_)
 
     return max_listen, specified_listen
 
@@ -264,15 +296,73 @@ if __name__ == '__main__':
     # 但是如果任选7张，问题就复杂了，因为每种数牌最多只有4张，所以任意单张不能超过4
     # cards_list = get_cards(6)  # 1947792 2992
     # cards_list = get_cards(7)  # 8347680 6030，这是暴力算出来的，6030种组合
+    # cards_list = get_cards(10) # 254186856 32211
+    # cards_list = get_cards2(10)
+    # cards_list = get_cards2(13)  # 经验证，这个方法应该无误
+    # print(comb(36, 10))  # 254186856
+    # print(comb(36, 11))  # 600805296
+    # print(comb(36, 12))  # 1251677700
+    # print(comb(36, 13))  # 2310789600
+    # cards_list = get_cards(11)
 
     # 现在可以考虑听2478的问题了
     # 先考虑7张牌的情况
-    cards_list = get_cards(7)
-    from_listen_to_cards('2578', cards_list=cards_list)  # 3456667
-    from_listen_to_cards('24578', cards_list=cards_list)  # 3334567
-    res = from_listen_to_cards('2478', cards_list=cards_list)  # 7张组合中，只听2478的牌型不存在
+    # cards_list = get_cards(7)
+    # from_listen_to_cards(['2578'], cards_list=cards_list)  # 3456667
+    # from_listen_to_cards(['24578'], cards_list=cards_list)  # 3334567
+    # res = from_listen_to_cards(['2478'], cards_list=cards_list)  # 7张组合中，只听2478的牌型不存在
     # 7张组合和5面的总共只有11种，如下
-    print(res)  # 2223444, 2223456, 2345666, 3334555, 3334567, 3456777, 4445666, 4445678, 4567888, 5556777, 6667888
+    # print(res)  # 2223444, 2223456, 2345666, 3334555, 3334567, 3456777, 4445666, 4445678, 4567888, 5556777, 6667888
 
+    # 完成get_cards2后，可以考虑更多张牌的情况了
+    # cards_list = get_cards2(10)
+    # res = from_listen_to_cards(['2478'], cards_list=cards_list)  # 10张组合中，只听2478的牌型也不存在
+    # 10张组合和8面的总共只有2种，如下
+    # print(res)  # 2223456777, 3334567888
 
+    # 下面考虑(终极)13张牌的情况
+    cards_list = get_cards2(13)
+    res = from_listen_to_cards(['2478', '12345678', '23456789'], cards_list=cards_list)  # 13张组合中，只听2478的牌型也不存在
+    # 从10面增加到13面后，胡1-8和2-9的牌型数大幅增加，每个分别有18种：
+    # 这是自然的，试想上面的2个组合，加上任意一个面子至少和1-8或2-9，此外还有新的组合
+    # 雀魂有个成就，完全不知道胡什么，打清一色确实容易过载
+    # 1112223456777 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 1112345566667 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 1113334567888 [2, 3, 4, 5, 6, 7, 8, 9]
+    # 1222233456777 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 1233334555567 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 2222334456777 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 2223333456777 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 2223334567888 [2, 3, 4, 5, 6, 7, 8, 9]
+    # 2223344556777 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 2223444455667 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 2223444456777 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 2223445566777 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 2223455556777 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 2223455667777 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 2223456666777 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 2223456777888 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 2223456777999 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 2333344555567 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 2334455556777 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 2344445566667 [1, 2, 3, 4, 5, 6, 7, 8]
+    # 3333445567888 [2, 3, 4, 5, 6, 7, 8, 9]
+    # 3334444567888 [2, 3, 4, 5, 6, 7, 8, 9]
+    # 3334455667888 [2, 3, 4, 5, 6, 7, 8, 9]
+    # 3334555566778 [2, 3, 4, 5, 6, 7, 8, 9]
+    # 3334555567888 [2, 3, 4, 5, 6, 7, 8, 9]
+    # 3334556677888 [2, 3, 4, 5, 6, 7, 8, 9]
+    # 3334566667888 [2, 3, 4, 5, 6, 7, 8, 9]
+    # 3334566778888 [2, 3, 4, 5, 6, 7, 8, 9]
+    # 3334567777888 [2, 3, 4, 5, 6, 7, 8, 9]
+    # 3334567788889 [2, 3, 4, 5, 6, 7, 8, 9]
+    # 3334567888999 [2, 3, 4, 5, 6, 7, 8, 9]
+    # 3444455666678 [2, 3, 4, 5, 6, 7, 8, 9]
+    # 3444455678999 [2, 3, 4, 5, 6, 7, 8, 9]
+    # 3445566667888 [2, 3, 4, 5, 6, 7, 8, 9]
+    # 3455556677778 [2, 3, 4, 5, 6, 7, 8, 9]
+    # 3455556777789 [2, 3, 4, 5, 6, 7, 8, 9]
 
+    # 13张组合和9面居然有8种，我之前还以为只有九莲宝灯1种，8种如下
+    # 在之前10张胡8面的基础上，2223456777加上678、789各能生成一种，3334567888加上123、234各能生成一种
+    print(res)  # 1112345666678, 1112345678999, 1233334567888, 2223456677778, 2223456777789, 2333344567888, 2344445666678, 2344445678999
