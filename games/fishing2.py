@@ -68,6 +68,7 @@ def get_match(i, type='a'):
     """
     获取i的匹配列表
     :param i:
+    :param type: 默认参数a表示数牌所有类型，z表示字牌，逻辑是只要传参不是z则都使用数牌的算法
     :return:
     """
     res = []

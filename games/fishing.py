@@ -13,23 +13,25 @@ from itertools import combinations, permutations
 from scipy.special import comb, perm
 
 
-def get_match(i):
+def get_match(i, type='a'):
     """
     获取i的匹配列表
     :param i:
+    :param type: 默认参数a表示数牌所有类型，z表示字牌，逻辑是只要传参不是z则都使用数牌的算法
     :return:
     """
     res = []
     i = int(i)
     res.append([i, i, i])
 
-    # 这个思路有点意思
-    if i <= 7:
-        res.append([i, i + 1, i + 2])
-    if 2 <= i <= 8:
-        res.append([i - 1, i, i + 1])
-    if i >= 3:
-        res.append([i - 2, i - 1, i])
+    if type != 'z':
+        # 这个思路有点意思
+        if i <= 7:
+            res.append([i, i + 1, i + 2])
+        if 2 <= i <= 8:
+            res.append([i - 1, i, i + 1])
+        if i >= 3:
+            res.append([i - 2, i - 1, i])
 
     return res
 
@@ -64,10 +66,11 @@ def cards_pop(cards, c_match):
         return 0, cards
 
 
-def is_complete(cards):
+def is_complete(cards, type='a'):
     """
     判断cards是否组成了一般型
     :param cards:
+    :param type: 默认参数a表示数牌所有类型，z表示字牌，逻辑是只要传参不是z则都使用数牌的算法
     :return:
     """
     # 成型后含对子时牌的张数：2，2+3，2+3+3，2+3+3+3，2+3+3+3+3
@@ -113,7 +116,7 @@ def is_complete(cards):
 
         # 思考后发现这个外层for循环完全没有必要，因为get_match函数已经包含了匹配成功时所有可能的情况
         # 直接去掉外层for循环后代码如下：将cards[0]作为参数传入get_match函数
-        for c_match in get_match(cards[0]):
+        for c_match in get_match(cards[0], type=type):
             # c_match是一种含c的面子，如[1, 2, 3]
             # print(cards, cards[0], c_match)
             signal, sub_cards = cards_pop(cards, c_match)
@@ -218,27 +221,29 @@ def get_cards(num):
     return res
 
 
-def get_cards2(num):
+def get_cards2(num, base=range(1, 10)):
     """
     num张牌所有可能的组合，优化版，自己重写一个方法
     基本思路：n+1就是在所有n的基础上，再进一张牌(只须满足不超过4张)，然后去重
     num = 10仅需0.3s左右
     num = 13仅需1.5s左右
     :param num:
+    :param base: 牌的基数，如base=range(1, 10)表示1-9，字牌时base=range(1, 8)
     :return:
     """
     time0 = time.time()
+
     if num == 1:
-        res = [str(i) for i in range(1, 10)]
+        res = [str(i) for i in base]
     else:
-        cards = get_cards2(num - 1)
+        cards = get_cards2(num - 1, base)
         res = []
         for i in cards:
-            for j in range(1, 10):
+            for j in base:
                 if i.count(str(j)) < 4:
                     res.append(''.join(sorted(i + str(j))))
         res = sorted(set(res))
-    print(len(res))
+    # print(len(res))
     # print(f'time_consume: {time.time() - time0:.3f} s')
     return res
 
