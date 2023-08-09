@@ -138,7 +138,7 @@ def num_combs():
     # 方法三：思考：方法二的代码执行效率可能是最高的，但是代码逻辑不够清晰，能否用递归的思想来写呢？
     def func(no_pair_num, res, temp):
         """
-        这个函数的思想是，如果sum(temp) > 14，则pop，如果sum(temp) == 14，则append后pop
+        这个函数的思想是，如果sum(temp) > 14，则pop，如果sum(temp) == 14，则将temp添加到res后pop
         它相当于一个检验程序，检验temp是否满足条件，小于14则append后再次调用自身，调用完成后pop，因为调用方执行完后，sum(temp)必然>=14
 
         这个函数完美实现了我想要的效果，即在每一层开始时从no_pair_num中取元素，验证和，根据结果决定下一步
@@ -184,6 +184,20 @@ def num_combs():
     return res
 
 
+def is_pairs(cards: str):
+    """
+    判断是否是对子
+    :param cards: 示例值：11123
+    :return:
+    """
+    signal = 1
+    for s in cards:
+        if cards.count(s) != 2:
+            signal = 0
+            break
+    return signal
+
+
 def cards_comb(cards: str):
     """
     计算cards的组合数，cards为单种牌，m,p,s,z中的一种
@@ -208,20 +222,30 @@ def compute_combs(type='a'):
     else:
         base = range(1, 10)
 
-    # 索引列表示张数，接下来依次是 牌型数、有效牌型数、有效组合数
-    df = pd.DataFrame(columns=['patterns', 'valid_patterns', 'valid_combs'])
+    # 索引列表示张数，接下来依次是 牌型数、有效牌型数、有效组合数，对子牌型数、对子组合数
+    # 对子牌型即既可视为一般型，又满足七对子型的牌型，如11223344s，它和112233p组合在一起
+    df = pd.DataFrame(columns=['patterns', 'valid_patterns', 'valid_combs', 'pair_patterns', 'pair_combs'])
     for i in pair_num + no_pair_num:
         # 这里在计算get_cards2时，其实有很多重复计算，但耗时不长，暂时忽略
         cards_list = get_cards2(i, base=base)
         patterns = len(cards_list)
         valid_patterns = 0
         valid_combs = 0
+        pair_patterns = 0
+        pair_combs = 0
         for cards in cards_list:
             if is_complete(cards, type=type):
                 valid_patterns += 1
                 valid_combs += cards_comb(cards)
-        df.loc[i] = [patterns, valid_patterns, valid_combs]
+                # 继续检验是否为对子牌型
+                # 这里无需区分数牌与字牌，因为例如11223344z，它本身都不构成一般型，所以不会进入到这里
+                if is_pairs(cards):
+                    pair_patterns += 1
+                    pair_combs += cards_comb(cards)
+        df.loc[i] = [patterns, valid_patterns, valid_combs, pair_patterns, pair_combs]
 
+    # 补充0值，便于后续计算
+    df.loc[0] = [1, 1, 1, 1, 1]
     # 排序
     df.sort_index(inplace=True)
     return df
@@ -238,20 +262,70 @@ def main():
 
     # 下面可以计算天和的概率了
     # 从pair_num中取一个，然后从no_pair_num中取若干(小于等于3个)，满足加和等于14，即一般型的组合
-    num_combs = []
-    for i in pair_num:
-        while 14 - i > 0:
-            pass
+    # num_combs()
+
+    # 3种数牌1种字牌，3种数牌是等价的，故对每个num_comb，如(2,3,9)，补0变为(0,2,3,9)，然后确定哪个元素对应字牌，并得到其组合数
+    # 再计算剩余3个元素分配到3个数牌的组合数m，将number中对应的值相乘再乘以m
+    # 后面发现这样写对于程序来说还更麻烦，改为直接计算出所有排列，然后对每个具体的排列带入值即可，如(2,3,9)，补0变为(0,2,3,9)，
+    # 排列有24种，对每种排列，第一位至第三位对应数牌，第四位对应字牌，将其组合数相乘即可
+    exact = 0
+    contain_pairs = 0
+    for temp in num_combs():
+        temp = list(temp)
+        for i in range(4 - len(temp)):
+            temp.append(0)
+        for p in set(permutations(temp)):
+            exact += number.loc[p[0], 'valid_combs'] * number.loc[p[1], 'valid_combs'] * number.loc[
+                p[2], 'valid_combs'] * word.loc[p[3], 'valid_combs']
+            contain_pairs += number.loc[p[0], 'pair_combs'] * number.loc[p[1], 'pair_combs'] * number.loc[
+                p[2], 'pair_combs'] * word.loc[p[3], 'pair_combs']
+
+    print(exact)
+    # 11353128141498
+
+    # 一般型是有可能同时包含七对子的牌型的，如11223344556677s，要将其减掉，不然和下面的相加就会重复计算
+    # 既是一般型，又是七对子的组合只有以下几种：(2,6,6)，(2,12)，(6,8)，(14,)，且字牌只能对应2或0
+    # 后面发现完全不用手动列举，甚至不用处理字牌条件，
+    # 因为compute_combs中已经处理好了相关数据，不是七对子的牌型，对应组合数的乘数为0，所以将这部分合并到上面去
+    # contain_pairs = 0
+    # for temp in [(2, 6, 6), (2, 12), (6, 8), (14,)]:
+    #     temp = list(temp)
+    #     for i in range(4 - len(temp)):
+    #         temp.append(0)
+    #     for p in set(permutations(temp)):
+    #         if p[3] == 2 or p[3] == 0:
+    #             contain_pairs += number.loc[p[0], 'pair_combs'] * number.loc[p[1], 'pair_combs'] * number.loc[
+    #                 p[2], 'pair_combs'] * word.loc[p[3], 'pair_combs']
+
+    print(f'contain_pairs: {contain_pairs}')
+    # 1306741248
+
+    # 七对子的组合数
+    seven_pairs = comb(34, 7) * comb(4, 2) ** 7
+    # 1505948184576
+
+    # 国士无双的组合数
+    thirteen_orphans = comb(13, 1) * comb(4, 2) * comb(4, 1) ** 12
+    # 1308622848
+
+    exact = exact - contain_pairs + seven_pairs + thirteen_orphans
+    print(exact)
+    # 12860384948922
+
+    total = comb(136, 14)
+    probability = exact / total
+    print(probability)  # 3.025755765919411e-06
+    print(f'概率约为1/{total / exact}')
 
 
 if __name__ == '__main__':
-    # print(perm(136, 14, True))  # 370534329521651228232499200000
-    # print(comb(136, 14, True))  # 4250305029168216000
+    # print(perm(136, 14, exact=True))  # 370534329521651228232499200000
+    # print(comb(136, 14))  # 4250305029168216000
 
+    # print(get_cards2(2))
     print(cards_comb('11123'))  # 64
 
     # trivial()
-    num_combs()
+    # num_combs()
 
-    # number()
-    # main()
+    main()

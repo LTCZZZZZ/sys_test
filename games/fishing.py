@@ -221,7 +221,7 @@ def get_cards(num):
     return res
 
 
-def get_cards2(num, base=range(1, 10)):
+def get_cards2(num: int, base=range(1, 10)) -> list[str]:
     """
     num张牌所有可能的组合，优化版，自己重写一个方法
     基本思路：n+1就是在所有n的基础上，再进一张牌(只须满足不超过4张)，然后去重
